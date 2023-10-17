@@ -1,6 +1,7 @@
 package dev.axgr
 
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseCookie
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.CookieValue
@@ -20,22 +21,23 @@ class CookieController {
   fun inspect(): ResponseEntity<Void> {
     val cookie = ResponseCookie.from("theme")
       .value("dark")
-      .domain("localhost")
-      .maxAge(Duration.of(60, ChronoUnit.SECONDS))
-      .httpOnly(true)
-      .secure(true)
-      .path("/")
+      .domain("localhost") // visible to localhost
+      .maxAge(Duration.of(60, ChronoUnit.SECONDS)) // expires in 60 seconds
+      .httpOnly(true) // not accessible via JavaScript
+      .secure(true) // only sent over HTTPS - except for localhost
+      .path("/") // available in all paths
       .build()
 
     return ResponseEntity.ok()
-      .header("Set-Cookie", cookie.toString())
+      .header(HttpHeaders.SET_COOKIE, cookie.toString())
       .build()
 
 
   }
 
   @GetMapping("/preferences")
-  fun preferences(@CookieValue("theme") theme: String?) {
+  fun preferences(@CookieValue("theme", defaultValue = "dark") theme: String) {
     log.info("You chose the $theme theme.")
   }
+
 }
